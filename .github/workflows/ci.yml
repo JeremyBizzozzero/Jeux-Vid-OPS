@@ -41,7 +41,7 @@ jobs:
           const r = JSON.parse(fs.readFileSync('test-results.json', 'utf8'));
           let passed = 0, failed = 0;
           r.testResults.forEach(suite => {
-            suite.testResults.forEach(t => {
+            (suite.assertionResults || []).forEach(t => {
               if (t.status === 'failed') {
                 const msg = t.ancestorTitles.join(' > ') + ' > ' + t.title;
                 console.log('::error::' + msg);
@@ -99,7 +99,7 @@ jobs:
           const r = JSON.parse(fs.readFileSync('test-results.json', 'utf8'));
           let passed = 0, failed = 0;
           r.testResults.forEach(suite => {
-            suite.testResults.forEach(t => {
+            (suite.assertionResults || []).forEach(t => {
               if (t.status === 'failed') {
                 const msg = t.ancestorTitles.join(' > ') + ' > ' + t.title;
                 console.log('::error::' + msg);
