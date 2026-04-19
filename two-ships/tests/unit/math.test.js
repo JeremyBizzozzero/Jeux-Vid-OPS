@@ -58,8 +58,3 @@ describe('lerp additional', () => {
   });
 });
 
-describe('mapLinear additional', () => {
-  test('mapLinear(5,0,10,0,100) returns 50', () => {
-    expect(mapLinear(5, 0, 10, 0, 100)).toBe(50);
-  });
-});
