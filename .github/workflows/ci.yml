@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ci-two-ships:
+    name: CI - Two Ships
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: two-ships
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint
+        run: npx eslint src/
+        continue-on-error: true
+
+      - name: Tests
+        id: tests
+        run: npx jest --json --outputFile=test-results.json || true
+
+      - name: Annotations & Resume
+        if: always()
+        run: |
+          node -e "
+          const fs = require('fs');
+          if (!fs.existsSync('test-results.json')) process.exit(0);
+          const r = JSON.parse(fs.readFileSync('test-results.json', 'utf8'));
+          let passed = 0, failed = 0;
+          r.testResults.forEach(suite => {
+            suite.testResults.forEach(t => {
+              if (t.status === 'failed') {
+                const msg = t.ancestorTitles.join(' > ') + ' > ' + t.title;
+                console.log('::error::' + msg);
+                failed++;
+              } else {
+                passed++;
+              }
+            });
+          });
+          const summary = [
+            '## Two Ships - Resultats des tests',
+            '| Statut | Nombre |',
+            '|---|---|',
+            '| Passes | ' + passed + ' |',
+            '| Echoues | ' + failed + ' |',
+          ].join('\n');
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + '\n');
+          if (failed > 0) process.exit(1);
+          "
+
+      - name: Audit des dependances
+        run: npm audit --audit-level=high || true
+
+  ci-keepwhitespace:
+    name: CI - KeepWhiteSpace
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: KeepWhiteSpace
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint
+        run: npx eslint src/
+        continue-on-error: true
+
+      - name: Tests
+        id: tests
+        run: npx jest --json --outputFile=test-results.json || true
+
+      - name: Annotations & Resume
+        if: always()
+        run: |
+          node -e "
+          const fs = require('fs');
+          if (!fs.existsSync('test-results.json')) process.exit(0);
+          const r = JSON.parse(fs.readFileSync('test-results.json', 'utf8'));
+          let passed = 0, failed = 0;
+          r.testResults.forEach(suite => {
+            suite.testResults.forEach(t => {
+              if (t.status === 'failed') {
+                const msg = t.ancestorTitles.join(' > ') + ' > ' + t.title;
+                console.log('::error::' + msg);
+                failed++;
+              } else {
+                passed++;
+              }
+            });
+          });
+          const summary = [
+            '## KeepWhiteSpace - Resultats des tests',
+            '| Statut | Nombre |',
+            '|---|---|',
+            '| Passes | ' + passed + ' |',
+            '| Echoues | ' + failed + ' |',
+          ].join('\n');
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + '\n');
+          if (failed > 0) process.exit(1);
+          "
+
+      - name: Audit des dependances
+        run: npm audit --audit-level=high || true
